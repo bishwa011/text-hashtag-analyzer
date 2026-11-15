@@ -55,7 +55,8 @@ button:hover {
 }
 
 #word-count,
-#character-count {
+#character-count,
+#reading-time {
   margin-bottom: 0;
   font-weight: 700;
 }
