@@ -8,6 +8,7 @@ A small browser app built with plain HTML, CSS, and JavaScript. It analyzes text
 - Live character count, including spaces and line breaks.
 - Estimated reading time at 200 words per minute, rounded up to whole minutes.
 - A simple extractive summarizer. Enter at least two sentences and select **Summarize** to see selected sentences from the original text.
+- A rule-based paraphraser that rewrites a small set of predefined phrases locally, without an API.
 
 ## Run the app
 
@@ -26,3 +27,15 @@ The hosted version is available at <https://bishwa011.github.io/text-hashtag-ana
 This is a small educational heuristic. It selects existing sentences; it does not understand or rewrite their meaning like an AI summarizer. Sentence splitting is punctuation-based and works best with ordinary English sentences.
 
 The summary is cleared when the input changes. Select **Summarize** again to analyze the updated text.
+
+## How paraphrasing works
+
+Select **Paraphrase** to apply these case-insensitive phrase substitutions to a separate result, leaving the input unchanged:
+
+- “in order to” → “to”
+- “at this point in time” → “now”
+- “due to the fact that” → “because”
+- “in the event that” → “if”
+- “for the purpose of” → “for”
+
+The tool preserves initial capitalization. Text with none of these phrases is left unchanged and reported as such. This is a limited rule-based rewriter, not a context-aware paraphraser.

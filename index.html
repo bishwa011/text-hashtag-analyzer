@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Text &amp; Hashtag Analyzer</title>
     <link rel="stylesheet" href="style.css?v=2" />
-    <script src="script.js?v=4" defer></script>
+    <script src="script.js?v=5" defer></script>
   </head>
   <body>
     <main class="app">
@@ -24,6 +24,13 @@
       <section aria-labelledby="summary-heading">
         <h2 id="summary-heading">Summary</h2>
         <p id="summary-result" aria-live="polite">Enter at least two sentences, then select Summarize.</p>
+      </section>
+
+      <button id="paraphrase-button" type="button">Paraphrase</button>
+
+      <section aria-labelledby="paraphrase-heading">
+        <h2 id="paraphrase-heading">Rule-based paraphrase</h2>
+        <p id="paraphrase-result" aria-live="polite">Enter text, then select Paraphrase.</p>
       </section>
     </main>
   </body>

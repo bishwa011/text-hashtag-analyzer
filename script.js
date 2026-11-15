@@ -4,8 +4,17 @@ const characterCountResult = document.querySelector("#character-count");
 const readingTimeResult = document.querySelector("#reading-time");
 const summarizeButton = document.querySelector("#summarize-button");
 const summaryResult = document.querySelector("#summary-result");
+const paraphraseButton = document.querySelector("#paraphrase-button");
+const paraphraseResult = document.querySelector("#paraphrase-result");
 
 const WORDS_PER_MINUTE = 200;
+const PARAPHRASE_RULES = [
+  { pattern: /\bin\s+order\s+to\b/gi, replacement: "to" },
+  { pattern: /\bat\s+this\s+point\s+in\s+time\b/gi, replacement: "now" },
+  { pattern: /\bdue\s+to\s+the\s+fact\s+that\b/gi, replacement: "because" },
+  { pattern: /\bin\s+the\s+event\s+that\b/gi, replacement: "if" },
+  { pattern: /\bfor\s+the\s+purpose\s+of\b/gi, replacement: "for" }
+];
 const STOP_WORDS = new Set([
   "a", "an", "and", "are", "as", "at", "be", "been", "but", "by",
   "for", "from", "had", "has", "have", "he", "her", "him", "his",
@@ -25,6 +34,7 @@ function updateCounts() {
   characterCountResult.textContent = `Character count: ${characterCount}`;
   readingTimeResult.textContent = `Estimated reading time: ${readingMinutes} min`;
   summaryResult.textContent = "Select Summarize to create a summary from the current text.";
+  paraphraseResult.textContent = "Select Paraphrase to apply the local phrase rules.";
 }
 
 function getSentences(text) {
@@ -78,6 +88,42 @@ function summarizeText() {
   summaryResult.textContent = selectedSentences.join(" ");
 }
 
+function preserveCapitalization(originalPhrase, replacement) {
+  if (originalPhrase === originalPhrase.toUpperCase()) {
+    return replacement.toUpperCase();
+  }
+
+  const startsWithCapital = originalPhrase[0] === originalPhrase[0].toUpperCase();
+  return startsWithCapital
+    ? replacement[0].toUpperCase() + replacement.slice(1)
+    : replacement;
+}
+
+function paraphraseText() {
+  const originalText = textInput.value;
+
+  if (originalText.trim() === "") {
+    paraphraseResult.textContent = "Enter some text to paraphrase.";
+    return;
+  }
+
+  let paraphrasedText = originalText;
+
+  for (const rule of PARAPHRASE_RULES) {
+    paraphrasedText = paraphrasedText.replace(rule.pattern, (match) =>
+      preserveCapitalization(match, rule.replacement)
+    );
+  }
+
+  if (paraphrasedText === originalText) {
+    paraphraseResult.textContent = "No supported phrases found. The original text is unchanged.";
+    return;
+  }
+
+  paraphraseResult.textContent = paraphrasedText;
+}
+
 textInput.addEventListener("input", updateCounts);
 summarizeButton.addEventListener("click", summarizeText);
+paraphraseButton.addEventListener("click", paraphraseText);
 updateCounts();
