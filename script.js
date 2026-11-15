@@ -2,12 +2,31 @@ const textInput = document.querySelector("#text-input");
 const wordCountResult = document.querySelector("#word-count");
 const characterCountResult = document.querySelector("#character-count");
 const readingTimeResult = document.querySelector("#reading-time");
+const sentenceCountResult = document.querySelector("#sentence-count");
+const paragraphCountResult = document.querySelector("#paragraph-count");
+const averageSentenceLengthResult = document.querySelector("#average-sentence-length");
+const longestSentenceResult = document.querySelector("#longest-sentence");
+const keywordsResult = document.querySelector("#keywords-result");
+const hashtagsResult = document.querySelector("#hashtags-result");
+const summaryLengthSelect = document.querySelector("#summary-length");
 const summarizeButton = document.querySelector("#summarize-button");
 const summaryResult = document.querySelector("#summary-result");
 const paraphraseButton = document.querySelector("#paraphrase-button");
 const paraphraseResult = document.querySelector("#paraphrase-result");
+const copySummaryButton = document.querySelector("#copy-summary-button");
+const copyParaphraseButton = document.querySelector("#copy-paraphrase-button");
+const downloadResultsButton = document.querySelector("#download-results-button");
+const actionStatus = document.querySelector("#action-status");
+const draftStatus = document.querySelector("#draft-status");
+const clearTextButton = document.querySelector("#clear-text-button");
 
 const WORDS_PER_MINUTE = 200;
+const DRAFT_STORAGE_KEY = "text-hashtag-analyzer-draft";
+const SUMMARY_LENGTH_RATIOS = {
+  short: 0.2,
+  standard: 1 / 3,
+  detailed: 0.5
+};
 const PARAPHRASE_RULES = [
   { pattern: /\bin\s+order\s+to\b/gi, replacement: "to" },
   { pattern: /\bat\s+this\s+point\s+in\s+time\b/gi, replacement: "now" },
@@ -23,18 +42,12 @@ const STOP_WORDS = new Set([
   "to", "us", "was", "we", "were", "with", "you", "your"
 ]);
 
-function updateCounts() {
-  const text = textInput.value;
-  const trimmedText = text.trim();
-  const wordCount = trimmedText === "" ? 0 : trimmedText.split(/\s+/).length;
-  const characterCount = text.length;
-  const readingMinutes = Math.ceil(wordCount / WORDS_PER_MINUTE);
+let currentSummary = "";
+let currentParaphrase = "";
 
-  wordCountResult.textContent = `Word count: ${wordCount}`;
-  characterCountResult.textContent = `Character count: ${characterCount}`;
-  readingTimeResult.textContent = `Estimated reading time: ${readingMinutes} min`;
-  summaryResult.textContent = "Select Summarize to create a summary from the current text.";
-  paraphraseResult.textContent = "Select Paraphrase to apply the local phrase rules.";
+function countWords(text) {
+  const trimmedText = text.trim();
+  return trimmedText === "" ? 0 : trimmedText.split(/\s+/).length;
 }
 
 function getSentences(text) {
@@ -42,13 +55,100 @@ function getSentences(text) {
   return matches.map((sentence) => sentence.trim()).filter(Boolean);
 }
 
-function getMeaningfulWords(sentence) {
-  const words = sentence.toLowerCase().match(/[a-z0-9']+/g) || [];
+function getParagraphs(text) {
+  const trimmedText = text.trim();
+  if (trimmedText === "") {
+    return [];
+  }
+
+  return trimmedText.split(/\n\s*\n/).filter((paragraph) => paragraph.trim() !== "");
+}
+
+function getMeaningfulWords(text) {
+  const words = text.toLowerCase().match(/[a-z0-9']+/g) || [];
   return words.filter((word) => !STOP_WORDS.has(word));
+}
+
+function getKeywordCounts(text) {
+  const counts = new Map();
+
+  for (const word of getMeaningfulWords(text)) {
+    const currentCount = counts.get(word) || 0;
+    counts.set(word, currentCount + 1);
+  }
+
+  return Array.from(counts.entries())
+    .sort((first, second) => second[1] - first[1] || first[0].localeCompare(second[0]))
+    .slice(0, 5);
+}
+
+function getHashtagCounts(text) {
+  const hashtags = text.match(/#[A-Za-z0-9_]+/g) || [];
+  const counts = new Map();
+
+  for (const hashtag of hashtags) {
+    const normalizedHashtag = hashtag.toLowerCase();
+    const existingEntry = counts.get(normalizedHashtag);
+
+    if (existingEntry) {
+      existingEntry.count += 1;
+    } else {
+      counts.set(normalizedHashtag, { label: hashtag, count: 1 });
+    }
+  }
+
+  return Array.from(counts.values());
+}
+
+function updateTextAnalysis() {
+  const text = textInput.value;
+  const wordCount = countWords(text);
+  const characterCount = text.length;
+  const readingMinutes = Math.ceil(wordCount / WORDS_PER_MINUTE);
+  const sentences = getSentences(text);
+  const paragraphs = getParagraphs(text);
+  const sentenceWordCounts = sentences.map((sentence) => countWords(sentence));
+  const totalSentenceWords = sentenceWordCounts.reduce((total, count) => total + count, 0);
+  const averageSentenceLength = sentences.length === 0
+    ? 0
+    : totalSentenceWords / sentences.length;
+  const longestSentenceLength = sentenceWordCounts.reduce(
+    (longest, count) => Math.max(longest, count),
+    0
+  );
+  const topKeywords = getKeywordCounts(text);
+  const hashtags = getHashtagCounts(text);
+
+  wordCountResult.textContent = `Word count: ${wordCount}`;
+  characterCountResult.textContent = `Character count: ${characterCount}`;
+  readingTimeResult.textContent = `Estimated reading time: ${readingMinutes} min`;
+  sentenceCountResult.textContent = `Sentence count: ${sentences.length}`;
+  paragraphCountResult.textContent = `Paragraph count: ${paragraphs.length}`;
+  averageSentenceLengthResult.textContent = `Average sentence length: ${averageSentenceLength.toFixed(1)} words`;
+  longestSentenceResult.textContent = `Longest sentence: ${longestSentenceLength} words`;
+  keywordsResult.textContent = topKeywords.length === 0
+    ? "Top keywords: none"
+    : `Top keywords: ${topKeywords.map(([word, count]) => `${word} (${count})`).join(", ")}`;
+  hashtagsResult.textContent = hashtags.length === 0
+    ? "Hashtags: none"
+    : `Hashtags: ${hashtags.map(({ label, count }) => `${label} (${count})`).join(", ")}`;
+
+  currentSummary = "";
+  currentParaphrase = "";
+  summaryResult.textContent = "Select Summarize to create a summary from the current text.";
+  paraphraseResult.textContent = "Select Paraphrase to apply the local phrase rules.";
+  actionStatus.textContent = "";
+}
+
+function getSummarySentenceCount(sentenceCount) {
+  const selectedRatio = SUMMARY_LENGTH_RATIOS[summaryLengthSelect.value]
+    || SUMMARY_LENGTH_RATIOS.standard;
+  return Math.max(1, Math.ceil(sentenceCount * selectedRatio));
 }
 
 function summarizeText() {
   const sentences = getSentences(textInput.value);
+  currentSummary = "";
 
   if (sentences.length < 2) {
     summaryResult.textContent = "Enter at least two sentences to create a summary.";
@@ -78,14 +178,15 @@ function summarizeText() {
     return { sentence, index, score };
   });
 
-  const summarySentenceCount = Math.max(1, Math.ceil(sentences.length / 3));
+  const summarySentenceCount = getSummarySentenceCount(sentences.length);
   const selectedSentences = sentenceScores
     .sort((first, second) => second.score - first.score || first.index - second.index)
     .slice(0, summarySentenceCount)
     .sort((first, second) => first.index - second.index)
     .map((item) => item.sentence);
 
-  summaryResult.textContent = selectedSentences.join(" ");
+  currentSummary = selectedSentences.join(" ");
+  summaryResult.textContent = currentSummary;
 }
 
 function preserveCapitalization(originalPhrase, replacement) {
@@ -101,6 +202,7 @@ function preserveCapitalization(originalPhrase, replacement) {
 
 function paraphraseText() {
   const originalText = textInput.value;
+  currentParaphrase = "";
 
   if (originalText.trim() === "") {
     paraphraseResult.textContent = "Enter some text to paraphrase.";
@@ -120,10 +222,99 @@ function paraphraseText() {
     return;
   }
 
-  paraphraseResult.textContent = paraphrasedText;
+  currentParaphrase = paraphrasedText;
+  paraphraseResult.textContent = currentParaphrase;
 }
 
-textInput.addEventListener("input", updateCounts);
+async function copyResult(text, label) {
+  if (text === "") {
+    actionStatus.textContent = `Create a ${label.toLowerCase()} first.`;
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    actionStatus.textContent = `${label} copied to clipboard.`;
+  } catch {
+    actionStatus.textContent = `Clipboard access is unavailable. You can select and copy the displayed ${label.toLowerCase()} manually.`;
+  }
+}
+
+function downloadGeneratedText() {
+  const sections = [];
+
+  if (currentSummary !== "") {
+    sections.push(`Summary:\n${currentSummary}`);
+  }
+  if (currentParaphrase !== "") {
+    sections.push(`Paraphrase:\n${currentParaphrase}`);
+  }
+  if (sections.length === 0) {
+    actionStatus.textContent = "Create a summary or paraphrase before downloading.";
+    return;
+  }
+
+  const file = new Blob([sections.join("\n\n")], { type: "text/plain" });
+  const fileUrl = URL.createObjectURL(file);
+  const downloadLink = document.createElement("a");
+  downloadLink.href = fileUrl;
+  downloadLink.download = "text-analyzer-results.txt";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+  window.setTimeout(() => URL.revokeObjectURL(fileUrl), 1000);
+  actionStatus.textContent = "Downloaded generated text.";
+}
+
+function saveDraft() {
+  try {
+    localStorage.setItem(DRAFT_STORAGE_KEY, textInput.value);
+    draftStatus.textContent = "Draft saved in this browser.";
+  } catch {
+    draftStatus.textContent = "Draft saving is unavailable in this browser.";
+  }
+}
+
+function loadDraft() {
+  try {
+    const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (savedDraft !== null) {
+      textInput.value = savedDraft;
+      draftStatus.textContent = "Restored the draft saved in this browser.";
+    }
+  } catch {
+    draftStatus.textContent = "Draft saving is unavailable in this browser.";
+  }
+}
+
+function clearTextAndDraft() {
+  textInput.value = "";
+
+  try {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    draftStatus.textContent = "Text and saved draft cleared.";
+  } catch {
+    draftStatus.textContent = "Text cleared, but browser storage could not be changed.";
+  }
+
+  updateTextAnalysis();
+}
+
+textInput.addEventListener("input", () => {
+  updateTextAnalysis();
+  saveDraft();
+});
+summaryLengthSelect.addEventListener("change", () => {
+  if (currentSummary !== "") {
+    summarizeText();
+  }
+});
 summarizeButton.addEventListener("click", summarizeText);
 paraphraseButton.addEventListener("click", paraphraseText);
-updateCounts();
+copySummaryButton.addEventListener("click", () => copyResult(currentSummary, "Summary"));
+copyParaphraseButton.addEventListener("click", () => copyResult(currentParaphrase, "Paraphrase"));
+downloadResultsButton.addEventListener("click", downloadGeneratedText);
+clearTextButton.addEventListener("click", clearTextAndDraft);
+
+loadDraft();
+updateTextAnalysis();

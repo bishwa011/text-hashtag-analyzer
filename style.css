@@ -39,6 +39,16 @@ textarea {
   resize: vertical;
 }
 
+select {
+  display: block;
+  width: min(100%, 280px);
+  padding: 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  font: inherit;
+}
+
 button {
   margin-top: 1rem;
   padding: 0.7rem 1rem;
