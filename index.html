@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Text &amp; Hashtag Analyzer</title>
     <link rel="stylesheet" href="style.css?v=2" />
-    <script src="script.js?v=3" defer></script>
+    <script src="script.js?v=4" defer></script>
   </head>
   <body>
     <main class="app">
@@ -18,6 +18,13 @@
       <p id="word-count">Word count: 0</p>
       <p id="character-count">Character count: 0</p>
       <p id="reading-time">Estimated reading time: 0 min</p>
+
+      <button id="summarize-button" type="button">Summarize</button>
+
+      <section aria-labelledby="summary-heading">
+        <h2 id="summary-heading">Summary</h2>
+        <p id="summary-result" aria-live="polite">Enter at least two sentences, then select Summarize.</p>
+      </section>
     </main>
   </body>
 </html>
