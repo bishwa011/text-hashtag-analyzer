@@ -1,12 +1,16 @@
 const textInput = document.querySelector("#text-input");
-const countButton = document.querySelector("#count-button");
-const result = document.querySelector("#result");
+const wordCountResult = document.querySelector("#word-count");
+const characterCountResult = document.querySelector("#character-count");
 
-countButton.addEventListener("click", () => {
-  const text = textInput.value.trim();
+function updateCounts() {
+  const text = textInput.value;
+  const trimmedText = text.trim();
+  const wordCount = trimmedText === "" ? 0 : trimmedText.split(/\s+/).length;
+  const characterCount = text.length;
 
-  // Empty text has no words. Otherwise, split wherever whitespace appears.
-  const words = text === "" ? [] : text.split(/\s+/);
+  wordCountResult.textContent = `Word count: ${wordCount}`;
+  characterCountResult.textContent = `Character count: ${characterCount}`;
+}
 
-  result.textContent = `Word count: ${words.length}`;
-});
+textInput.addEventListener("input", updateCounts);
+updateCounts();

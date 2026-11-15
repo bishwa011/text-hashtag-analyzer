@@ -54,7 +54,8 @@ button:hover {
   background: #1d4ed8;
 }
 
-#result {
+#word-count,
+#character-count {
   margin-bottom: 0;
   font-weight: 700;
 }
