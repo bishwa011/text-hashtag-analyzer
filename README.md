@@ -2,6 +2,8 @@
 
 A small browser app built with plain HTML, CSS, and JavaScript. It analyzes text locally in the browser and does not use a framework, database, or API.
 
+The tools are organized into keyboard-accessible **Analyze**, **Summarize**, and **Paraphrase** tabs.
+
 ## Features
 
 - Live word count. Words are separated by whitespace.
@@ -21,6 +23,8 @@ A small browser app built with plain HTML, CSS, and JavaScript. It analyzes text
 Open `index.html` in a browser. No build or installation step is needed.
 
 The hosted version is available at <https://bishwa011.github.io/text-hashtag-analyzer/>.
+
+Use the tab buttons to switch tools. The left/right arrow keys move between tabs; Home and End move to the first and last tab.
 
 ## How the summarizer works
 
@@ -52,3 +56,7 @@ The tool preserves initial capitalization. Text with none of these phrases is le
 Sentence splitting uses `.`, `!`, and `?`, and paragraph counting uses blank lines. These simple rules work best with ordinary English text. Keyword counts omit a short list of common English words. Hashtags are matched as `#` followed by one or more English letters, digits, or underscores; casing is ignored when counting.
 
 The current draft is automatically stored in this browser's local storage and restored on the next visit to this site. It does not sync to another browser or device. **Clear text and saved draft** removes it from this browser. Copying uses the browser clipboard and may be unavailable when opening the files directly; it is supported on the hosted HTTPS page.
+
+## Current limits
+
+This is a single-user static app. It has no real account login or shared profile. Real accounts and cross-device data would need a backend or authentication service.

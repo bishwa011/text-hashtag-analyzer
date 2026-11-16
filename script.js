@@ -1,4 +1,5 @@
 const textInput = document.querySelector("#text-input");
+const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
 const wordCountResult = document.querySelector("#word-count");
 const characterCountResult = document.querySelector("#character-count");
 const readingTimeResult = document.querySelector("#reading-time");
@@ -48,6 +49,41 @@ let currentParaphrase = "";
 function countWords(text) {
   const trimmedText = text.trim();
   return trimmedText === "" ? 0 : trimmedText.split(/\s+/).length;
+}
+
+function activateTab(selectedTab, moveFocus = false) {
+  for (const tab of tabs) {
+    const isSelected = tab === selectedTab;
+    const panel = document.querySelector(`#${tab.getAttribute("aria-controls")}`);
+
+    tab.setAttribute("aria-selected", String(isSelected));
+    tab.tabIndex = isSelected ? 0 : -1;
+    panel.hidden = !isSelected;
+  }
+
+  if (moveFocus) {
+    selectedTab.focus();
+  }
+}
+
+function handleTabKeydown(event, currentTab) {
+  const currentIndex = tabs.indexOf(currentTab);
+  let nextIndex;
+
+  if (event.key === "ArrowRight") {
+    nextIndex = (currentIndex + 1) % tabs.length;
+  } else if (event.key === "ArrowLeft") {
+    nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+  } else if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = tabs.length - 1;
+  } else {
+    return;
+  }
+
+  event.preventDefault();
+  activateTab(tabs[nextIndex], true);
 }
 
 function getSentences(text) {
@@ -135,7 +171,7 @@ function updateTextAnalysis() {
 
   currentSummary = "";
   currentParaphrase = "";
-  summaryResult.textContent = "Select Summarize to create a summary from the current text.";
+  summaryResult.textContent = "Select Create summary to analyze the current text.";
   paraphraseResult.textContent = "Select Paraphrase to apply the local phrase rules.";
   actionStatus.textContent = "";
 }
@@ -304,6 +340,10 @@ textInput.addEventListener("input", () => {
   updateTextAnalysis();
   saveDraft();
 });
+for (const tab of tabs) {
+  tab.addEventListener("click", () => activateTab(tab));
+  tab.addEventListener("keydown", (event) => handleTabKeydown(event, tab));
+}
 summaryLengthSelect.addEventListener("change", () => {
   if (currentSummary !== "") {
     summarizeText();
@@ -318,3 +358,4 @@ clearTextButton.addEventListener("click", clearTextAndDraft);
 
 loadDraft();
 updateTextAnalysis();
+activateTab(tabs[0]);

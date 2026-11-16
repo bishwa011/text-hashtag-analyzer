@@ -4,63 +4,78 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Text &amp; Hashtag Analyzer</title>
-    <link rel="stylesheet" href="style.css?v=3" />
-    <script src="script.js?v=6" defer></script>
+    <link rel="stylesheet" href="style.css?v=4" />
+    <script src="script.js?v=7" defer></script>
   </head>
   <body>
     <main class="app">
       <h1>Text &amp; Hashtag Analyzer</h1>
-      <p>Text statistics update as you type.</p>
+      <p>Analyze text, create a summary, or try local wording rules.</p>
 
-      <label for="text-input">Your text</label>
-      <textarea id="text-input" rows="8" placeholder="Type or paste text here..."></textarea>
+      <div class="tab-list" role="tablist" aria-label="Text analysis tools">
+        <button class="tab-button" id="tab-analyze" type="button" role="tab" aria-selected="true" aria-controls="panel-analyze" tabindex="0">Analyze</button>
+        <button class="tab-button" id="tab-summary" type="button" role="tab" aria-selected="false" aria-controls="panel-summary" tabindex="-1">Summarize</button>
+        <button class="tab-button" id="tab-paraphrase" type="button" role="tab" aria-selected="false" aria-controls="panel-paraphrase" tabindex="-1">Paraphrase</button>
+      </div>
 
-      <p id="word-count">Word count: 0</p>
-      <p id="character-count">Character count: 0</p>
-      <p id="reading-time">Estimated reading time: 0 min</p>
+      <section class="tab-panel" id="panel-analyze" role="tabpanel" aria-labelledby="tab-analyze" tabindex="0">
+        <label for="text-input">Your text</label>
+        <textarea id="text-input" rows="8" placeholder="Type or paste text here..."></textarea>
 
-      <section aria-labelledby="text-stats-heading">
-        <h2 id="text-stats-heading">More text statistics</h2>
-        <p id="sentence-count">Sentence count: 0</p>
-        <p id="paragraph-count">Paragraph count: 0</p>
-        <p id="average-sentence-length">Average sentence length: 0 words</p>
-        <p id="longest-sentence">Longest sentence: 0 words</p>
+        <p id="word-count">Word count: 0</p>
+        <p id="character-count">Character count: 0</p>
+        <p id="reading-time">Estimated reading time: 0 min</p>
+
+        <section aria-labelledby="text-stats-heading">
+          <h2 id="text-stats-heading">More text statistics</h2>
+          <p id="sentence-count">Sentence count: 0</p>
+          <p id="paragraph-count">Paragraph count: 0</p>
+          <p id="average-sentence-length">Average sentence length: 0 words</p>
+          <p id="longest-sentence">Longest sentence: 0 words</p>
+        </section>
+
+        <section aria-labelledby="word-analysis-heading">
+          <h2 id="word-analysis-heading">Words and hashtags</h2>
+          <p id="keywords-result">Top keywords: none</p>
+          <p id="hashtags-result">Hashtags: none</p>
+        </section>
+
+        <p id="draft-status">Your current text saves automatically in this browser.</p>
+        <button id="clear-text-button" type="button">Clear text and saved draft</button>
       </section>
 
-      <section aria-labelledby="word-analysis-heading">
-        <h2 id="word-analysis-heading">Words and hashtags</h2>
-        <p id="keywords-result">Top keywords: none</p>
-        <p id="hashtags-result">Hashtags: none</p>
+      <section class="tab-panel" id="panel-summary" role="tabpanel" aria-labelledby="tab-summary" tabindex="0" hidden>
+        <label for="summary-length">Summary length</label>
+        <select id="summary-length">
+          <option value="short">Short (about 20%)</option>
+          <option value="standard" selected>Standard (about 33%)</option>
+          <option value="detailed">Detailed (about 50%)</option>
+        </select>
+
+        <button id="summarize-button" type="button">Create summary</button>
+
+        <section aria-labelledby="summary-heading">
+          <h2 id="summary-heading">Summary</h2>
+          <p id="summary-result" aria-live="polite">Enter at least two sentences, then select Create summary.</p>
+          <button id="copy-summary-button" type="button">Copy summary</button>
+        </section>
       </section>
 
-      <label for="summary-length">Summary length</label>
-      <select id="summary-length">
-        <option value="short">Short (about 20%)</option>
-        <option value="standard" selected>Standard (about 33%)</option>
-        <option value="detailed">Detailed (about 50%)</option>
-      </select>
+      <section class="tab-panel" id="panel-paraphrase" role="tabpanel" aria-labelledby="tab-paraphrase" tabindex="0" hidden>
+        <p>The original text stays unchanged. Supported phrases are rewritten using local rules.</p>
+        <button id="paraphrase-button" type="button">Paraphrase</button>
 
-      <button id="summarize-button" type="button">Summarize</button>
-
-      <section aria-labelledby="summary-heading">
-        <h2 id="summary-heading">Summary</h2>
-        <p id="summary-result" aria-live="polite">Enter at least two sentences, then select Summarize.</p>
-        <button id="copy-summary-button" type="button">Copy summary</button>
+        <section aria-labelledby="paraphrase-heading">
+          <h2 id="paraphrase-heading">Rule-based paraphrase</h2>
+          <p id="paraphrase-result" aria-live="polite">Enter text, then select Paraphrase.</p>
+          <button id="copy-paraphrase-button" type="button">Copy paraphrase</button>
+        </section>
       </section>
 
-      <button id="paraphrase-button" type="button">Paraphrase</button>
-
-      <section aria-labelledby="paraphrase-heading">
-        <h2 id="paraphrase-heading">Rule-based paraphrase</h2>
-        <p id="paraphrase-result" aria-live="polite">Enter text, then select Paraphrase.</p>
-        <button id="copy-paraphrase-button" type="button">Copy paraphrase</button>
-      </section>
-
-      <button id="download-results-button" type="button">Download generated text</button>
-      <p id="action-status" aria-live="polite"></p>
-
-      <p id="draft-status">Your current text saves automatically in this browser.</p>
-      <button id="clear-text-button" type="button">Clear text and saved draft</button>
+      <footer class="app-actions">
+        <button id="download-results-button" type="button">Download generated text</button>
+        <p id="action-status" aria-live="polite"></p>
+      </footer>
     </main>
   </body>
 </html>
